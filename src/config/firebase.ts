@@ -9,7 +9,7 @@ if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         // WAJIB: Masukkan URL Realtime Database Anda di bawah ini
-        databaseURL: "https://steadfast-tesla-402305/database/steadfast-tesla-402305-default-rtdb"
+        databaseURL: "https://steadfast-tesla-402305-default-rtdb.asia-southeast1.firebasedatabase.app"
       });
       console.log('Firebase Admin SDK Production & RTDB berhasil terhubung.');
     } else {
