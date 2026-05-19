@@ -1,15 +1,39 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
-import { sendFcmCommand } from './control.controller'; // Memanfaatkan fungsi helper fcm sebelumnya
+import { rtdb } from '../config/firebase';
+import * as admin from 'firebase-admin';
 
-export const exploreDirectory = async (req: AuthenticatedRequest, res: Response) => {
-  const { deviceId, targetPath } = req.query; // targetPath contohnya: "/sdcard"
+export const exploreDirectory = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const { deviceId, targetPath } = req.query; 
   
-  // Meminta hp anak mengunggah daftar struktur folder mereka yang aktif ke server
-  const success = await sendFcmCommand(deviceId as string, { 
-    command: "EXPLORE_DIR", 
-    path: (targetPath as string) || "/sdcard" 
-  });
+  if (!deviceId) {
+    res.status(400).json({ success: false, message: 'Parameter deviceId wajib disertakan.' });
+    return;
+  }
 
-  res.json({ success, message: success ? 'Permintaan baca file manager dikirim.' : 'Hp anak tidak merespon.' });
+  if (!rtdb) {
+    res.status(500).json({ success: false, message: 'Layanan Realtime Database tidak tersedia.' });
+    return;
+  }
+
+  try {
+    const commandRef = rtdb.ref(`devices/${deviceId}/commands`);
+    
+    await commandRef.set({
+      command: "EXPLORE_DIR",
+      path: (targetPath as string) || "/sdcard",
+      timestamp: admin.database.ServerValue.TIMESTAMP
+    });
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Permintaan baca file manager berhasil dikirim ke Realtime Database.' 
+    });
+  } catch (error: any) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Gagal mengirimkan perintah file manager.', 
+      error: error.message 
+    });
+  }
 };
