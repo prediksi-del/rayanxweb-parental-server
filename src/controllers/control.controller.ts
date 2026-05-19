@@ -5,7 +5,6 @@ import * as admin from 'firebase-admin';
 
 export const sendInstantCommand = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { deviceId, action, mode, lens } = req.body; 
-  // action: "LOCK" | "UNLOCK" | "FLASH" | "CAPTURE_CAMERA"
 
   if (!deviceId || !action) {
     res.status(400).json({ success: false, message: 'Parameter deviceId dan action wajib diisi.' });
@@ -18,13 +17,12 @@ export const sendInstantCommand = async (req: AuthenticatedRequest, res: Respons
   }
 
   try {
-    // Jalur node tujuan: devices/$device_id/commands
     const commandRef = rtdb.ref(`devices/${deviceId}/commands`);
     
     await commandRef.set({
       command: action,
-      mode: mode || null,   // "ON", "OFF", "BLINK" (Untuk Flashlight)
-      lens: lens || null,   // "FRONT", "BACK" (Untuk Camera Capture)
+      mode: mode || null,   
+      lens: lens || null,   
       timestamp: admin.database.ServerValue.TIMESTAMP
     });
 
